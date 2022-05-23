@@ -20,7 +20,8 @@ async function run() {
 
     const productCollection = client.db("dbManufacturer").collection("products");
     const orderCollection = client.db("dbManufacturer").collection("order");
-    
+    const reviewCollection = client.db("dbManufacturer").collection("reviews");
+
     // load all products
     app.get('/product', async (req, res) => {
       const query = {};
@@ -35,15 +36,22 @@ async function run() {
       const product = await productCollection.findOne(query);
       res.send(product);
     });
+    // load all review
+    app.get('/review', async (req, res) => {
+      const query = {};
+      const cursor = reviewCollection.find(query);
+      const reviews = await cursor.toArray();
+      res.send(reviews);
+    });
     // order 
     app.post('/order', async (req, res) => {
       const order = req.body;
       const result = await orderCollection.insertOne(order);
       res.send(result);
-  })
+    });
 
   } finally {
-    
+
   }
 }
 run().catch(console.dir);
@@ -51,9 +59,9 @@ run().catch(console.dir);
 
 
 app.get('/', (req, res) => {
-    res.send('Car Parts Manufacturer')
-  })
-  
-  app.listen(port, () => {
-    console.log(`Car Parts Manufacturer Listening on port ${port}`)
-  })
+  res.send('Car Parts Manufacturer')
+})
+
+app.listen(port, () => {
+  console.log(`Car Parts Manufacturer Listening on port ${port}`)
+})
