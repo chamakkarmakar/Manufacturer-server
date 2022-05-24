@@ -10,7 +10,20 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-
+function verifyJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).send({ message: 'UnAuthorized access' });
+  }
+  const token = authHeader.split(' ')[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN, function (error, decoded) {
+    if (error) {
+      return res.status(403).send({ message: 'Forbidden access' })
+    }
+    req.decoded = decoded;
+    next();
+  });
+}
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.x5l25.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
@@ -22,7 +35,7 @@ async function run() {
     const productCollection = client.db("dbManufacturer").collection("products");
     const orderCollection = client.db("dbManufacturer").collection("order");
     const reviewCollection = client.db("dbManufacturer").collection("reviews");
-     const userCollection = client.db("dbManufacturer").collection("users");
+    const userCollection = client.db("dbManufacturer").collection("users");
 
     // load all products
     app.get('/product', async (req, res) => {
@@ -53,7 +66,7 @@ async function run() {
         process.env.ACCESS_TOKEN,
         { expiresIn: '1d' }
       );
-      res.send({result,token});
+      res.send({ result, token });
     });
     // load all review
     app.get('/review', async (req, res) => {
@@ -75,11 +88,18 @@ async function run() {
       res.send(result);
     });
     // load orders
-    app.get('/order', async (req, res) => {
+    app.get('/order', verifyJWT, async (req, res) => {
       const email = req.query.email;
-      const query={email : email};
-      const orders = await orderCollection.find(query).toArray();
-      res.send(orders);
+      const decodedEmail = req.decoded.email;
+      if (email === decodedEmail) {
+        const query = { email: email };
+        const orders = await orderCollection.find(query).toArray();
+        return res.send(orders);
+      }
+      else {
+        return res.status(403).send({ message: 'forbidden access' });
+      }
+
     })
 
   } finally {
