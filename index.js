@@ -51,6 +51,11 @@ async function run() {
       const product = await productCollection.findOne(query);
       res.send(product);
     });
+    // load all users 
+    app.get('/user', verifyJWT , async (req, res) => {
+      const users = await userCollection.find().toArray();
+      res.send(users);
+    });
     // users 
     app.put('/user/:email', async (req, res) => {
       const email = req.params.email;
