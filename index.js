@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
@@ -21,6 +22,7 @@ async function run() {
     const productCollection = client.db("dbManufacturer").collection("products");
     const orderCollection = client.db("dbManufacturer").collection("order");
     const reviewCollection = client.db("dbManufacturer").collection("reviews");
+     const userCollection = client.db("dbManufacturer").collection("users");
 
     // load all products
     app.get('/product', async (req, res) => {
@@ -35,6 +37,18 @@ async function run() {
       const query = { _id: ObjectId(id) };
       const product = await productCollection.findOne(query);
       res.send(product);
+    });
+    // users 
+    app.put('/user/:email', async (req, res) => {
+      const email = req.params.email;
+      const user = req.body;
+      const filter = { email: email };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: user,
+      };
+      const result = await userCollection.updateOne(filter, updateDoc, options);
+      res.send(result);
     });
     // load all review
     app.get('/review', async (req, res) => {
