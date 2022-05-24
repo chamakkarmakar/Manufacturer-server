@@ -48,7 +48,12 @@ async function run() {
         $set: user,
       };
       const result = await userCollection.updateOne(filter, updateDoc, options);
-      res.send(result);
+      const token = jwt.sign(
+        { email: email },
+        process.env.ACCESS_TOKEN,
+        { expiresIn: '1d' }
+      );
+      res.send({result,token});
     });
     // load all review
     app.get('/review', async (req, res) => {
@@ -69,14 +74,19 @@ async function run() {
       const result = await orderCollection.insertOne(order);
       res.send(result);
     });
+    // load orders
+    app.get('/order', async (req, res) => {
+      const email = req.query.email;
+      const query={email : email};
+      const orders = await orderCollection.find(query).toArray();
+      res.send(orders);
+    })
 
   } finally {
 
   }
 }
 run().catch(console.dir);
-
-
 
 app.get('/', (req, res) => {
   res.send('Car Parts Manufacturer')
