@@ -76,7 +76,7 @@ async function run() {
       res.send(result);
     })
     // load all users 
-    app.get('/user', verifyJWT , async (req, res) => {
+    app.get('/user' , async (req, res) => {
       const users = await userCollection.find().toArray();
       res.send(users);
     });
@@ -88,6 +88,19 @@ async function run() {
         $set: { role: 'admin' },
       };
       const result = await userCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    })
+    // user info 
+    app.put('/user/:email',  async (req, res) => {
+      const email = req.params.email;
+      const updateProfile = req.body;
+      console.log(updateProfile);
+      const filter = { email: email };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: updateProfile,
+      };
+      const result = await userCollection.updateOne(filter, updateDoc,options);
       res.send(result);
     })
     // admin 
