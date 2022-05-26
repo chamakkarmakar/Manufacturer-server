@@ -51,7 +51,7 @@ async function run() {
     }
 
     // load all products
-    app.get('/product',verifyJWT, verifyAdmin, async (req, res) => {
+    app.get('/product', async (req, res) => {
       const query = {};
       const products = await productCollection.find(query).toArray();
       res.send(products);
