@@ -46,15 +46,14 @@ async function run() {
         next();
       }
       else {
-        res.status(403).send({ message: 'forbidden' });
+        res.status(403).send({ message: 'Forbidden' });
       }
     }
 
     // load all products
-    app.get('/product', async (req, res) => {
+    app.get('/product',verifyJWT, verifyAdmin, async (req, res) => {
       const query = {};
-      const cursor = productCollection.find(query);
-      const products = await cursor.toArray();
+      const products = await productCollection.find(query).toArray();
       res.send(products);
     })
 
@@ -82,7 +81,7 @@ async function run() {
     });
 
     // load all users 
-    app.get('/user' , async (req, res) => {
+    app.get('/user' , verifyJWT, async (req, res) => {
       const users = await userCollection.find().toArray();
       res.send(users);
     });
@@ -99,18 +98,18 @@ async function run() {
     });
 
     // user info 
-    app.put('/user/:email',  async (req, res) => {
-      const email = req.params.email;
-      const updateProfile = req.body;
-      // console.log(updateProfile);
-      const filter = { email: email };
-      const options = { upsert: true };
-      const updateDoc = {
-        $set: updateProfile,
-      };
-      const result = await userCollection.updateOne(filter, updateDoc,options);
-      res.send(result);
-    });
+    // app.put('/user/:email',  async (req, res) => {
+    //   const email = req.params.email;
+    //   const updateProfile = req.body;
+    //   // console.log(updateProfile);
+    //   const filter = { email: email };
+    //   const options = { upsert: true };
+    //   const updateDoc = {
+    //     $set: updateProfile,
+    //   };
+    //   const result = await userCollection.updateOne(filter, updateDoc,options);
+    //   res.send(result);
+    // });
 
     // admin 
     app.get('/admin/:email', async (req, res) => {
@@ -161,7 +160,7 @@ async function run() {
     });
 
     // load all orders 
-    app.get('/order', async (req, res) => {
+    app.get('/order',verifyAdmin, async (req, res) => {
       const query = {};
       const orders = await orderCollection.find(query).toArray();
       res.send(orders);
@@ -182,7 +181,7 @@ async function run() {
     });
 
     // payment 
-    app.get('/order/:id', async(req, res) =>{
+    app.get('/order/:id', verifyJWT, async(req, res) =>{
       const id = req.params.id;
       const query = {_id: ObjectId(id)};
       const order = await orderCollection.findOne(query);
